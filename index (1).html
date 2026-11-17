@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f8ff">
+  <meta name="description" content="Practice gerunds and to-infinitives on an interactive USA grammar road trip.">
+  <title>Grammar Roadtrip USA</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #18345b;
+      --blue: #2874d0;
+      --blue-dark: #1859aa;
+      --blue-pale: #eaf3ff;
+      --green: #23885d;
+      --green-pale: #e8f7ef;
+      --yellow: #f7c754;
+      --ink: #25334a;
+      --muted: #6b7890;
+      --line: #e4eaf2;
+      --paper: #fff;
+      --background: #f3f8ff;
+      --shadow: 0 10px 28px rgb(34 65 105 / 8%);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--background);
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 3px solid #f1b833;
+      outline-offset: 3px;
+    }
+    .shell { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--navy); font-weight: 900; }
+    .brand-mark {
+      width: 40px; height: 40px; display: grid; place-items: center;
+      border-radius: 13px; background: var(--blue); color: white; font-size: 22px;
+    }
+    .top-note { color: var(--muted); font-size: 13px; font-weight: 700; }
+    .hero {
+      position: relative; overflow: hidden; display: grid; grid-template-columns: 1.4fr .6fr;
+      align-items: center; gap: 24px; min-height: 258px; padding: 34px 42px;
+      border-radius: 25px; color: white;
+      background: linear-gradient(115deg, #1d5fae 0%, #287bd0 57%, #299a77 100%);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "🗽"; position: absolute; right: 27%; bottom: -34px; font-size: 130px;
+      opacity: .14; transform: rotate(-8deg); pointer-events: none;
+    }
+    .eyebrow {
+      margin: 0 0 9px; color: #d7edff; font-size: 12px; font-weight: 900;
+      letter-spacing: .13em; text-transform: uppercase;
+    }
+    h1 { margin: 0; max-width: 570px; font-size: clamp(32px, 5vw, 52px); line-height: 1.04; letter-spacing: -.04em; }
+    .hero-copy { max-width: 500px; margin: 13px 0 0; color: #e8f4ff; font-size: 16px; }
+    .hero-stats {
+      z-index: 1; justify-self: end; width: min(100%, 260px); padding: 21px;
+      border: 1px solid rgb(255 255 255 / 28%); border-radius: 19px;
+      background: rgb(255 255 255 / 13%); backdrop-filter: blur(6px);
+    }
+    .stat-label { color: #e1f1ff; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .xp-value { margin: 2px 0 4px; font-size: 42px; font-weight: 900; line-height: 1.15; }
+    .xp-value span { font-size: 17px; font-weight: 700; }
+    .stat-foot { color: #e1f1ff; font-size: 13px; }
+    .road-panel, .activity-panel, .cheat-panel {
+      margin-top: 24px; padding: 24px; border: 1px solid var(--line); border-radius: 21px;
+      background: var(--paper); box-shadow: var(--shadow);
+    }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 19px; }
+    .section-heading h2 { margin: 0; color: var(--navy); font-size: 21px; }
+    .section-heading p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+    .route-progress { color: var(--blue-dark); font-size: 13px; font-weight: 900; white-space: nowrap; }
+    .route {
+      display: grid; grid-template-columns: repeat(9, minmax(94px, 1fr)); gap: 8px;
+      overflow-x: auto; padding: 3px 2px 12px;
+      scrollbar-color: #b6cbe3 transparent; scrollbar-width: thin;
+    }
+    .city {
+      position: relative; min-width: 94px; min-height: 105px; padding: 11px 6px;
+      border: 1px solid var(--line); border-radius: 15px; background: #f8fafd;
+      text-align: center; transition: transform .18s, border-color .18s, background .18s;
+    }
+    .city:not(:last-child)::after {
+      content: "→"; position: absolute; z-index: 1; top: 29px; right: -12px;
+      color: #9cacc1; font-weight: 900;
+    }
+    .city.current { border: 2px solid var(--blue); background: var(--blue-pale); transform: translateY(-3px); }
+    .city.unlocked:not(.current) { border-color: #a9dec2; background: #f3fbf6; }
+    .city-icon { display: block; font-size: 24px; line-height: 1.3; }
+    .city-name { display: block; margin-top: 5px; color: var(--navy); font-size: 11px; font-weight: 900; }
+    .city-state { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .road-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .progress-copy { color: var(--muted); font-size: 13px; }
+    .progress-copy strong { color: var(--navy); }
+    .progress-track { width: min(370px, 48%); height: 9px; overflow: hidden; border-radius: 99px; background: #eaf0f6; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), #38ad7c); transition: width .3s ease; }
+    .tabs { display: flex; gap: 8px; overflow-x: auto; margin: 24px 0 12px; padding: 3px 2px 5px; }
+    .tab {
+      flex: 0 0 auto; min-height: 43px; padding: 9px 16px; border: 1px solid #dfe7f1;
+      border-radius: 12px; color: var(--navy); background: white; font-weight: 800;
+    }
+    .tab[aria-selected="true"] { border-color: var(--blue); color: white; background: var(--blue); }
+    .activity-panel { min-height: 330px; margin-top: 0; }
+    .challenge-top { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    .challenge-title { margin: 0; color: var(--navy); font-size: 20px; }
+    .challenge-hint { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .points-pill { padding: 6px 11px; border-radius: 99px; color: #176846; background: var(--green-pale); font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .question-count { margin-top: 26px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    .prompt { margin: 9px 0 20px; color: var(--navy); font-size: clamp(20px, 3vw, 27px); font-weight: 900; }
+    .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .answer {
+      min-height: 55px; padding: 12px 15px; border: 2px solid var(--line); border-radius: 13px;
+      color: var(--ink); background: white; text-align: left; font-weight: 800; transition: .15s;
+    }
+    .answer:hover:not(:disabled) { border-color: #a9c8ee; background: #f6faff; }
+    .answer.correct { border-color: #56b481; color: #176846; background: var(--green-pale); }
+    .answer.incorrect { border-color: #e5a19a; color: #a23c34; background: #fff1ef; }
+    .answer:disabled { cursor: default; }
+    .feedback { min-height: 26px; margin: 14px 0 0; font-size: 14px; font-weight: 800; }
+    .feedback.good { color: #176846; }
+    .feedback.try { color: #a23c34; }
+    .action-row { display: flex; justify-content: flex-end; margin-top: 14px; }
+    .primary-button {
+      min-height: 44px; padding: 10px 18px; border: 0; border-radius: 12px;
+      color: white; background: var(--blue); font-weight: 900;
+    }
+    .primary-button:hover:not(:disabled) { background: var(--blue-dark); }
+    .primary-button:disabled { cursor: not-allowed; opacity: .5; }
+    .text-answer-row { display: flex; gap: 10px; max-width: 600px; }
+    .text-answer {
+      flex: 1; min-width: 0; min-height: 48px; padding: 10px 13px;
+      border: 2px solid var(--line); border-radius: 12px; color: var(--ink); background: white;
+    }
+    .sort-instructions { margin: 18px 0 12px; color: var(--muted); font-size: 14px; }
+    .verb-bank { display: flex; flex-wrap: wrap; gap: 9px; min-height: 48px; margin-bottom: 20px; }
+    .verb-chip {
+      min-height: 42px; padding: 8px 14px; border: 2px solid #dce6f2; border-radius: 12px;
+      color: var(--navy); background: #f6f9fd; font-weight: 900; touch-action: manipulation;
+    }
+    .verb-chip.selected { border-color: var(--blue); background: var(--blue-pale); }
+    .verb-chip:disabled { cursor: default; opacity: .55; }
+    .sort-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .sort-zone {
+      min-height: 126px; padding: 15px; border: 2px dashed #b6cbe3; border-radius: 15px;
+      background: #f7fbff; transition: .15s;
+    }
+    .sort-zone.over { border-color: var(--blue); background: var(--blue-pale); }
+    .sort-zone h3 { margin: 0 0 10px; color: var(--navy); font-size: 15px; }
+    .zone-words { display: flex; flex-wrap: wrap; gap: 7px; }
+    .zone-word { padding: 5px 9px; border: 0; border-radius: 8px; color: #176846; background: var(--green-pale); font-size: 13px; font-weight: 900; }
+    .zone-word.wrong { color: #a23c34; background: #fff1ef; }
+    .zone-word.selected { outline: 2px solid var(--blue); outline-offset: 1px; }
+    .badge-panel {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      margin: 24px 0 38px; padding: 20px 24px; border: 1px solid var(--line);
+      border-radius: 19px; background: white; box-shadow: var(--shadow);
+    }
+    .badge-panel h2 { margin: 0; color: var(--navy); font-size: 18px; }
+    .badge-panel p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+    .badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .badge {
+      padding: 7px 10px; border: 1px solid var(--line); border-radius: 11px;
+      color: #8995a8; background: #f8fafd; font-size: 11px; font-weight: 900; white-space: nowrap;
+    }
+    .badge.earned { border-color: #f0d477; color: #73540c; background: #fff7da; }
+    .cheat-panel { margin-bottom: 38px; }
+    .cheat-panel h2 { margin: 0 0 14px; color: var(--navy); font-size: 20px; }
+    .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .cheat-card { padding: 16px; border-radius: 14px; background: #f6f9fd; }
+    .cheat-card h3 { margin: 0 0 8px; color: var(--blue-dark); font-size: 15px; }
+    .cheat-card:nth-child(2) h3 { color: var(--green); }
+    .cheat-card p { margin: 4px 0; color: var(--ink); font-size: 13px; }
+    footer { padding: 0 0 28px; color: var(--muted); text-align: center; font-size: 12px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 720px) {
+      .hero { grid-template-columns: 1fr; min-height: 0; padding: 27px 24px; }
+      .hero-stats { justify-self: start; width: 100%; max-width: 100%; padding: 13px 16px; }
+      .xp-value { display: inline-block; margin-right: 8px; font-size: 32px; }
+      .hero::after { right: 8%; font-size: 100px; }
+      .road-panel, .activity-panel, .cheat-panel { padding: 18px; }
+      .road-footer { align-items: flex-start; flex-direction: column; gap: 9px; }
+      .progress-track { width: 100%; }
+      .badge-panel { align-items: flex-start; flex-direction: column; }
+      .badges { justify-content: flex-start; }
+    }
+    @media (max-width: 480px) {
+      .shell { width: min(100% - 22px, 1120px); }
+      .topbar { height: 60px; }
+      .top-note { font-size: 11px; }
+      .hero { border-radius: 19px; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .answers, .sort-columns, .cheat-grid { grid-template-columns: 1fr; }
+      .text-answer-row { align-items: stretch; flex-direction: column; }
+      .challenge-top { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">🚙</span><span>Grammar Roadtrip USA</span></div>
+    <div class="top-note">A grammar adventure for Grade 8</div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Your next great adventure starts here</p>
+        <h1 id="page-title">Hit the road.<br>Master your grammar.</h1>
+        <p class="hero-copy">Travel coast to coast, tackle fun grammar challenges, and earn your place in the USA Grammar Hall of Fame!</p>
+      </div>
+      <div class="hero-stats" aria-label="Your roadtrip score">
+        <div class="stat-label">Your roadtrip XP</div>
+        <div class="xp-value"><span id="xp-total">0</span> <span>XP</span></div>
+        <div class="stat-foot" id="current-badge">Your adventure is just beginning!</div>
+      </div>
+    </section>
+
+    <section class="road-panel" aria-labelledby="route-title">
+      <div class="section-heading">
+        <div><h2 id="route-title">🗺️ Your USA roadtrip</h2><p>Earn XP to unlock the next stop on the map.</p></div>
+        <div class="route-progress" id="level-label">LEVEL 1 OF 9</div>
+      </div>
+      <div class="route" id="route" aria-label="Roadtrip cities"></div>
+      <div class="road-footer">
+        <div class="progress-copy" id="progress-copy">Start in New York and collect your first XP!</div>
+        <div class="progress-track" role="progressbar" aria-label="Progress to next city" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="tabs" role="tablist" aria-label="Grammar activities">
+      <button class="tab" id="tab-quiz" role="tab" aria-selected="true" aria-controls="activity-content" data-activity="quiz">✏️ Multiple choice</button>
+      <button class="tab" id="tab-gap" role="tab" aria-selected="false" aria-controls="activity-content" data-activity="gap">🧩 Fill in the gap</button>
+      <button class="tab" id="tab-sort" role="tab" aria-selected="false" aria-controls="activity-content" data-activity="sort">🎯 Verb sort</button>
+    </nav>
+
+    <section class="activity-panel" id="activity-content" role="tabpanel" aria-labelledby="tab-quiz" tabindex="0"></section>
+
+    <section class="badge-panel" aria-labelledby="badges-title">
+      <div><h2 id="badges-title">🏆 Your achievement badges</h2><p>Keep practicing to collect them all!</p></div>
+      <div class="badges" id="badges"></div>
+    </section>
+
+    <section class="cheat-panel" aria-labelledby="cheat-title">
+      <h2 id="cheat-title">📚 The quick grammar pit stop</h2>
+      <div class="cheat-grid">
+        <article class="cheat-card">
+          <h3>Use a gerund (verb + -ing)</h3>
+          <p>Common verbs: <strong>enjoy, finish, avoid, mind, suggest, keep</strong></p>
+          <p>“We enjoy <strong>exploring</strong> new places.”</p>
+          <p>“She finished <strong>packing</strong> her suitcase.”</p>
+        </article>
+        <article class="cheat-card">
+          <h3>Use to + the base verb</h3>
+          <p>Common verbs: <strong>want, hope, decide, plan, promise, learn</strong></p>
+          <p>“I hope <strong>to visit</strong> California.”</p>
+          <p>“They decided <strong>to take</strong> the train.”</p>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="shell">Your progress saves automatically on this device. Happy travels! 🇺🇸</footer>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "grammar-roadtrip-usa-progress";
+      const cities = [
+        { name: "New York", icon: "🗽", xp: 0 },
+        { name: "Chicago", icon: "🌆", xp: 50 },
+        { name: "Nashville", icon: "🎸", xp: 100 },
+        { name: "Miami", icon: "🌴", xp: 150 },
+        { name: "Dallas", icon: "🤠", xp: 200 },
+        { name: "Los Angeles", icon: "🎥", xp: 250 },
+        { name: "San Francisco", icon: "🌉", xp: 300 },
+        { name: "Seattle", icon: "⭐", xp: 350 },
+        { name: "Washington D.C.", icon: "🏛️", xp: 400 }
+      ];
+      const achievements = [
+        { name: "Rookie", icon: "🥉", xp: 50 },
+        { name: "Traveler", icon: "🥈", xp: 100 },
+        { name: "Grammar Hero", icon: "🥇", xp: 200 },
+        { name: "Roadtrip Master", icon: "⭐", xp: 300 },
+        { name: "USA Champion", icon: "🏆", xp: 400 }
+      ];
+      const quizQuestions = [
+        { prompt: "I enjoy ______ basketball after school.", answers: ["playing", "to play"], correct: 0, explain: "Enjoy is followed by a gerund: enjoy playing." },
+        { prompt: "Mia hopes ______ the Grand Canyon one day.", answers: ["seeing", "to see"], correct: 1, explain: "Hope is followed by to + the base verb: hopes to see." },
+        { prompt: "We finished ______ our science project.", answers: ["making", "to make"], correct: 0, explain: "Finish is followed by a gerund: finished making." },
+        { prompt: "Dad decided ______ the scenic route.", answers: ["taking", "to take"], correct: 1, explain: "Decide is followed by to + the base verb: decided to take." },
+        { prompt: "Do you mind ______ the window?", answers: ["opening", "to open"], correct: 0, explain: "Mind is followed by a gerund: mind opening." },
+        { prompt: "They plan ______ in Nashville tonight.", answers: ["staying", "to stay"], correct: 1, explain: "Plan is followed by to + the base verb: plan to stay." },
+        { prompt: "Leo avoids ______ during rush hour.", answers: ["driving", "to drive"], correct: 0, explain: "Avoid is followed by a gerund: avoids driving." },
+        { prompt: "I want ______ the Statue of Liberty.", answers: ["visiting", "to visit"], correct: 1, explain: "Want is followed by to + the base verb: want to visit." },
+        { prompt: "She suggested ______ at the beach.", answers: ["stopping", "to stop"], correct: 0, explain: "Suggest is followed by a gerund: suggested stopping." },
+        { prompt: "We hope ______ our cousins in Dallas.", answers: ["meeting", "to meet"], correct: 1, explain: "Hope is followed by to + the base verb: hope to meet." },
+        { prompt: "Keep ______ and you will get there!", answers: ["trying", "to try"], correct: 0, explain: "Keep is followed by a gerund: keep trying." },
+        { prompt: "He promised ______ us a postcard.", answers: ["sending", "to send"], correct: 1, explain: "Promise is followed by to + the base verb: promised to send." },
+        { prompt: "Ava finished ______ her travel journal.", answers: ["writing", "to write"], correct: 0, explain: "Finish is followed by a gerund: finished writing." },
+        { prompt: "I learned ______ a few songs on guitar.", answers: ["playing", "to play"], correct: 1, explain: "Learn is followed by to + the base verb: learned to play." },
+        { prompt: "They avoid ______ too much luggage.", answers: ["packing", "to pack"], correct: 0, explain: "Avoid is followed by a gerund: avoid packing." },
+        { prompt: "We decided ______ the museum tomorrow.", answers: ["visiting", "to visit"], correct: 1, explain: "Decide is followed by to + the base verb: decided to visit." },
+        { prompt: "I don't mind ______ for a few minutes.", answers: ["waiting", "to wait"], correct: 0, explain: "Mind is followed by a gerund: don't mind waiting." },
+        { prompt: "She wants ______ a photo of the skyline.", answers: ["taking", "to take"], correct: 1, explain: "Want is followed by to + the base verb: wants to take." },
+        { prompt: "My friends enjoy ______ new foods.", answers: ["trying", "to try"], correct: 0, explain: "Enjoy is followed by a gerund: enjoy trying." },
+        { prompt: "He plans ______ the whole family along.", answers: ["bringing", "to bring"], correct: 1, explain: "Plan is followed by to + the base verb: plans to bring." }
+      ];
+      const gapQuestions = [
+        { prompt: "My brother enjoys ______ soccer with his friends.", answers: ["playing"], explain: "Enjoy is followed by a gerund: playing." },
+        { prompt: "We hope ______ the Space Needle in Seattle.", answers: ["to visit"], explain: "Hope is followed by to + the base verb: to visit." },
+        { prompt: "I finished ______ my homework before the trip.", answers: ["doing"], explain: "Finish is followed by a gerund: doing." },
+        { prompt: "They decided ______ a break at the next stop.", answers: ["to take"], explain: "Decide is followed by to + the base verb: to take." },
+        { prompt: "Would you mind ______ me with this map?", answers: ["helping"], explain: "Mind is followed by a gerund: helping." },
+        { prompt: "Our family plans ______ to Miami in July.", answers: ["to travel"], explain: "Plan is followed by to + the base verb: to travel." },
+        { prompt: "She avoids ______ too close to the edge.", answers: ["standing"], explain: "Avoid is followed by a gerund: standing." },
+        { prompt: "I want ______ my grandparents this weekend.", answers: ["to call"], explain: "Want is followed by to + the base verb: to call." },
+        { prompt: "He suggested ______ the famous music museum.", answers: ["visiting"], explain: "Suggest is followed by a gerund: visiting." },
+        { prompt: "We hope ______ the sunset over the ocean.", answers: ["to watch"], explain: "Hope is followed by to + the base verb: to watch." },
+        { prompt: "Keep ______ your new English words every day.", answers: ["practicing", "practising"], explain: "Keep is followed by a gerund: practicing." },
+        { prompt: "I promise ______ you a postcard from Chicago.", answers: ["to send"], explain: "Promise is followed by to + the base verb: to send." },
+        { prompt: "They finished ______ their bags for the road trip.", answers: ["packing"], explain: "Finish is followed by a gerund: packing." },
+        { prompt: "My cousin learned ______ a horse in Texas.", answers: ["to ride"], explain: "Learn is followed by to + the base verb: to ride." },
+        { prompt: "Do you enjoy ______ in the mountains?", answers: ["hiking"], explain: "Enjoy is followed by a gerund: hiking." },
+        { prompt: "We decided ______ the train to New York.", answers: ["to take"], explain: "Decide is followed by to + the base verb: to take." },
+        { prompt: "She doesn't mind ______ early for the flight.", answers: ["waking up"], explain: "Mind is followed by a gerund: waking up." },
+        { prompt: "I want ______ the Golden Gate Bridge.", answers: ["to see"], explain: "Want is followed by to + the base verb: to see." },
+        { prompt: "They avoid ______ too fast on rainy roads.", answers: ["driving"], explain: "Avoid is followed by a gerund: driving." },
+        { prompt: "He plans ______ a new guitar in Nashville.", answers: ["to buy"], explain: "Plan is followed by to + the base verb: to buy." }
+      ];
+      const sortVerbs = [
+        { word: "enjoy", type: "gerund" }, { word: "finish", type: "gerund" },
+        { word: "avoid", type: "gerund" }, { word: "mind", type: "gerund" },
+        { word: "want", type: "infinitive" }, { word: "hope", type: "infinitive" },
+        { word: "decide", type: "infinitive" }, { word: "plan", type: "infinitive" }
+      ];
+      const defaultState = () => ({ xp: 0, completed: { quiz: [], gap: [] }, sortBonus: false });
+      let state = defaultState();
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && Number.isFinite(saved.xp) && saved.xp >= 0) {
+          state.xp = Math.floor(saved.xp);
+          state.completed.quiz = Array.isArray(saved.completed?.quiz) ? saved.completed.quiz.filter(Number.isInteger) : [];
+          state.completed.gap = Array.isArray(saved.completed?.gap) ? saved.completed.gap.filter(Number.isInteger) : [];
+          state.sortBonus = saved.sortBonus === true;
+        }
+      } catch {
+        state = defaultState();
+      }
+
+      const route = document.querySelector("#route");
+      const activity = document.querySelector("#activity-content");
+      const quizIndex = () => quizQuestions.findIndex((_, index) => !state.completed.quiz.includes(index));
+      const gapIndex = () => gapQuestions.findIndex((_, index) => !state.completed.gap.includes(index));
+      let activeActivity = "quiz";
+      let currentQuiz = quizIndex() < 0 ? 0 : quizIndex();
+      let currentGap = gapIndex() < 0 ? 0 : gapIndex();
+      let quizLocked = state.completed.quiz.length < quizQuestions.length && state.completed.quiz.includes(currentQuiz);
+      let gapLocked = state.completed.gap.length < gapQuestions.length && state.completed.gap.includes(currentGap);
+      let selectedVerb = null;
+      const placedVerbs = { gerund: [], infinitive: [] };
+      let sortChecked = false;
+
+      function save() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          document.querySelector("footer").textContent = "Progress could not be saved on this device. You can keep playing in this tab.";
+        }
+      }
+
+      function renderProgress() {
+        const cityIndex = Math.max(0, cities.reduce((last, city, index) => state.xp >= city.xp ? index : last, 0));
+        const currentCity = cities[cityIndex];
+        const nextCity = cities[cityIndex + 1];
+        document.querySelector("#xp-total").textContent = state.xp;
+        document.querySelector("#level-label").textContent = `LEVEL ${cityIndex + 1} OF ${cities.length}`;
+        document.querySelector("#current-badge").textContent = state.xp >= 400 ? "USA Champion — you did it! 🎉" : `Currently exploring ${currentCity.name}`;
+        route.innerHTML = cities.map((city, index) => {
+          const unlocked = state.xp >= city.xp;
+          const isCurrent = index === cityIndex;
+          return `<div class="city${unlocked ? " unlocked" : ""}${isCurrent ? " current" : ""}"${isCurrent ? ' aria-current="step"' : ""} aria-label="${city.name}, ${unlocked ? (isCurrent ? "current stop" : "unlocked") : `unlocks at ${city.xp} XP`}">
+            <span class="city-icon" aria-hidden="true">${city.icon}</span>
+            <span class="city-name">${city.name}</span>
+            <span class="city-state">${isCurrent ? "You are here!" : unlocked ? "Unlocked" : `${city.xp} XP`}</span>
+          </div>`;
+        }).join("");
+        const progress = nextCity ? Math.min(100, ((state.xp - currentCity.xp) / (nextCity.xp - currentCity.xp)) * 100) : 100;
+        document.querySelector(".progress-track").setAttribute("aria-valuenow", Math.round(progress));
+        document.querySelector("#progress-fill").style.width = `${progress}%`;
+        document.querySelector("#progress-copy").innerHTML = nextCity
+          ? `<strong>${nextCity.xp - state.xp} XP</strong> to unlock ${nextCity.name}`
+          : "<strong>Roadtrip complete!</strong> You conquered the whole USA!";
+        document.querySelector("#badges").innerHTML = achievements.map(badge =>
+          `<span class="badge${state.xp >= badge.xp ? " earned" : ""}" title="${badge.xp} XP">${badge.icon} ${badge.name}</span>`
+        ).join("");
+      }
+
+      function awardXP(amount) {
+        state.xp += amount;
+        save();
+        renderProgress();
+      }
+
+      function setFeedback(message, kind) {
+        const feedback = activity.querySelector(".feedback");
+        feedback.textContent = message;
+        feedback.className = `feedback ${kind}`;
+      }
+
+      function renderQuiz() {
+        const question = quizQuestions[currentQuiz];
+        const done = state.completed.quiz.length >= quizQuestions.length;
+        activity.setAttribute("aria-labelledby", "tab-quiz");
+        activity.innerHTML = `<div class="challenge-top">
+          <div><h2 class="challenge-title">✏️ Multiple choice challenge</h2><p class="challenge-hint">Choose the correct verb form to earn roadtrip XP.</p></div>
+          <span class="points-pill">+10 XP per new answer</span>
+        </div>
+        <div class="question-count">${done ? "ROUND COMPLETE! PRACTICE AGAIN ANYTIME" : `QUESTION ${state.completed.quiz.length + 1} OF ${quizQuestions.length}`}</div>
+        <p class="prompt">${question.prompt.replace("______", "<span aria-label='missing word'>______</span>")}</p>
+        <div class="answers" role="group" aria-label="Choose the correct verb form">
+          ${question.answers.map((answer, index) => `<button class="answer" data-answer="${index}"${quizLocked ? " disabled" : ""}>${String.fromCharCode(65 + index)}. ${answer}</button>`).join("")}
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+        <div class="action-row"><button class="primary-button" id="next-question" ${quizLocked ? "" : "disabled"}>${done ? "Practice again →" : "Next question →"}</button></div>`;
+        activity.querySelectorAll(".answer").forEach(button => button.addEventListener("click", () => {
+          if (quizLocked) return;
+          const correct = Number(button.dataset.answer) === question.correct;
+          if (correct) {
+            button.classList.add("correct");
+            activity.querySelectorAll(".answer").forEach(choice => { choice.disabled = true; });
+            quizLocked = true;
+            if (!state.completed.quiz.includes(currentQuiz)) {
+              state.completed.quiz.push(currentQuiz);
+              awardXP(10);
+              setFeedback(`That's right! ${question.explain} +10 XP`, "good");
+            } else {
+              setFeedback(`That's right! ${question.explain} Practice answer — no extra XP this time.`, "good");
+            }
+            activity.querySelector("#next-question").disabled = false;
+          } else {
+            button.classList.add("incorrect");
+            button.disabled = true;
+            setFeedback("Not quite — try the other form. Check the grammar pit stop below!", "try");
+          }
+        }));
+        activity.querySelector("#next-question").addEventListener("click", () => {
+          if (!quizLocked && !done) return;
+          const next = quizIndex();
+          currentQuiz = next < 0 ? (currentQuiz + 1) % quizQuestions.length : next;
+          quizLocked = state.completed.quiz.length < quizQuestions.length && state.completed.quiz.includes(currentQuiz);
+          renderQuiz();
+          activity.querySelector(".prompt").focus?.();
+        });
+      }
+
+      function renderGap() {
+        const question = gapQuestions[currentGap];
+        const done = state.completed.gap.length >= gapQuestions.length;
+        activity.setAttribute("aria-labelledby", "tab-gap");
+        activity.innerHTML = `<div class="challenge-top">
+          <div><h2 class="challenge-title">🧩 Fill in the gap</h2><p class="challenge-hint">Type the missing verb form, then check your answer.</p></div>
+          <span class="points-pill">+10 XP per new answer</span>
+        </div>
+        <div class="question-count">${done ? "ROUND COMPLETE! PRACTICE AGAIN ANYTIME" : `QUESTION ${state.completed.gap.length + 1} OF ${gapQuestions.length}`}</div>
+        <p class="prompt">${question.prompt}</p>
+        <form class="text-answer-row" id="gap-form">
+          <label class="sr-only" for="gap-input">Your answer</label>
+          <input class="text-answer" id="gap-input" autocomplete="off" placeholder="Type the missing words…" ${gapLocked ? "disabled" : ""} required>
+          <button class="primary-button" type="submit" ${gapLocked ? "disabled" : ""}>Check answer</button>
+        </form>
+        <p class="feedback" aria-live="polite"></p>
+        <div class="action-row"><button class="primary-button" id="next-gap" ${gapLocked ? "" : "disabled"}>${done ? "Practice again →" : "Next question →"}</button></div>`;
+        activity.querySelector("#gap-form").addEventListener("submit", event => {
+          event.preventDefault();
+          if (gapLocked) return;
+          const input = activity.querySelector("#gap-input");
+          const answer = input.value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+          if (question.answers.some(expected => answer === expected.toLocaleLowerCase())) {
+            gapLocked = true;
+            input.disabled = true;
+            activity.querySelector("#gap-form button").disabled = true;
+            if (!state.completed.gap.includes(currentGap)) {
+              state.completed.gap.push(currentGap);
+              awardXP(10);
+              setFeedback(`Correct! ${question.explain} +10 XP`, "good");
+            } else {
+              setFeedback(`Correct! ${question.explain} Practice answer — no extra XP this time.`, "good");
+            }
+            activity.querySelector("#next-gap").disabled = false;
+          } else {
+            setFeedback("Not quite — try again. Think about which verb pattern comes after the first verb.", "try");
+            input.select();
+          }
+        });
+        activity.querySelector("#next-gap").addEventListener("click", () => {
+          if (!gapLocked && !done) return;
+          const next = gapIndex();
+          currentGap = next < 0 ? (currentGap + 1) % gapQuestions.length : next;
+          gapLocked = state.completed.gap.length < gapQuestions.length && state.completed.gap.includes(currentGap);
+          renderGap();
+          activity.querySelector("#gap-input").focus();
+        });
+      }
+
+      function renderSort() {
+        activity.setAttribute("aria-labelledby", "tab-sort");
+        const allSorted = placedVerbs.gerund.length + placedVerbs.infinitive.length === sortVerbs.length;
+        const correctCount = Object.entries(placedVerbs).reduce((total, [type, words]) =>
+          total + words.filter(word => sortVerbs.find(item => item.word === word)?.type === type).length, 0);
+        const complete = allSorted && correctCount === sortVerbs.length;
+        activity.innerHTML = `<div class="challenge-top">
+          <div><h2 class="challenge-title">🎯 Verb sorting challenge</h2><p class="challenge-hint">Sort each verb by the form that follows it.</p></div>
+          <span class="points-pill">${state.sortBonus ? "Bonus earned! ✓" : "+30 XP bonus"}</span>
+        </div>
+        <p class="sort-instructions">Drag a verb into a category, or tap a verb and then tap its category.</p>
+        <div class="verb-bank" aria-label="Verbs to sort">
+          ${sortVerbs.filter(item => !placedVerbs.gerund.includes(item.word) && !placedVerbs.infinitive.includes(item.word)).map(item =>
+            `<button class="verb-chip${selectedVerb === item.word ? " selected" : ""}" draggable="true" data-verb="${item.word}" aria-pressed="${selectedVerb === item.word}">${item.word}</button>`
+          ).join("") || '<span class="progress-copy">All verbs sorted — check your answers below.</span>'}
+        </div>
+        <div class="sort-columns">
+          ${["gerund", "infinitive"].map(type => `<div class="sort-zone" data-zone="${type}" tabindex="0" aria-label="Drop verbs followed by ${type === "gerund" ? "a gerund" : "to-infinitive"} here">
+            <h3>${type === "gerund" ? "Gerund (verb + -ing)" : "To-Infinitive (to + verb)"}</h3>
+            <div class="zone-words">${placedVerbs[type].map(word => {
+              const isWrong = sortChecked && sortVerbs.find(item => item.word === word)?.type !== type;
+              return `<button class="zone-word${isWrong ? " wrong" : ""}${selectedVerb === word ? " selected" : ""}" data-verb="${word}" draggable="true" aria-pressed="${selectedVerb === word}">${word}</button>`;
+            }).join("")}</div>
+          </div>`).join("")}
+        </div>
+        <p class="feedback ${complete ? "good" : ""}" aria-live="polite">${sortChecked && !complete ? "Some verbs are in the wrong category. Move them and check again!" : complete ? (state.sortBonus ? "Perfect sorting! Your bonus has already been collected. 🎉" : "Perfect sorting! You earned the 30 XP bonus! 🎉") : ""}</p>
+        <div class="action-row"><button class="primary-button" id="check-sort" ${allSorted ? "" : "disabled"}>${complete ? "Sort again" : "Check my sorting"}</button></div>`;
+
+        activity.querySelectorAll("[data-verb]").forEach(chip => {
+          chip.addEventListener("click", event => {
+            if (chip.classList.contains("zone-word")) event.stopPropagation();
+            selectedVerb = selectedVerb === chip.dataset.verb ? null : chip.dataset.verb;
+            renderSort();
+          });
+          chip.addEventListener("dragstart", event => event.dataTransfer.setData("text/plain", chip.dataset.verb));
+        });
+        activity.querySelectorAll(".sort-zone").forEach(zone => {
+          zone.addEventListener("click", () => {
+            if (!selectedVerb) return;
+            placeVerb(selectedVerb, zone.dataset.zone);
+            selectedVerb = null;
+            renderSort();
+          });
+          zone.addEventListener("dragover", event => { event.preventDefault(); zone.classList.add("over"); });
+          zone.addEventListener("dragleave", () => zone.classList.remove("over"));
+          zone.addEventListener("drop", event => {
+            event.preventDefault();
+            zone.classList.remove("over");
+            placeVerb(event.dataTransfer.getData("text/plain"), zone.dataset.zone);
+            selectedVerb = null;
+            renderSort();
+          });
+        });
+        activity.querySelector("#check-sort").addEventListener("click", () => {
+          if (complete) {
+            placedVerbs.gerund.length = 0;
+            placedVerbs.infinitive.length = 0;
+            sortChecked = false;
+            selectedVerb = null;
+          } else {
+            sortChecked = true;
+            const nowComplete = placedVerbs.gerund.length + placedVerbs.infinitive.length === sortVerbs.length &&
+              Object.entries(placedVerbs).every(([type, words]) => words.every(word => sortVerbs.find(item => item.word === word)?.type === type));
+            if (nowComplete && !state.sortBonus) {
+              state.sortBonus = true;
+              awardXP(30);
+            }
+          }
+          renderSort();
+        });
+      }
+
+      function placeVerb(word, type) {
+        if (!word || !sortVerbs.some(item => item.word === word)) return;
+        const gerundIndex = placedVerbs.gerund.indexOf(word);
+        const infinitiveIndex = placedVerbs.infinitive.indexOf(word);
+        if (gerundIndex >= 0) placedVerbs.gerund.splice(gerundIndex, 1);
+        if (infinitiveIndex >= 0) placedVerbs.infinitive.splice(infinitiveIndex, 1);
+        placedVerbs[type].push(word);
+        sortChecked = false;
+      }
+
+      function showActivity(name) {
+        activeActivity = name;
+        document.querySelectorAll(".tab").forEach(tab => {
+          const active = tab.dataset.activity === name;
+          tab.setAttribute("aria-selected", String(active));
+          tab.tabIndex = active ? 0 : -1;
+        });
+        if (name === "quiz") renderQuiz();
+        if (name === "gap") renderGap();
+        if (name === "sort") renderSort();
+      }
+
+      document.querySelectorAll(".tab").forEach((tab, index, tabs) => {
+        tab.addEventListener("click", () => showActivity(tab.dataset.activity));
+        tab.addEventListener("keydown", event => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          const direction = event.key === "ArrowRight" ? 1 : -1;
+          const next = (index + direction + tabs.length) % tabs.length;
+          tabs[next].focus();
+          showActivity(tabs[next].dataset.activity);
+        });
+      });
+
+      renderProgress();
+      showActivity(activeActivity);
+    })();
+  </script>
+</body>
+</html>
